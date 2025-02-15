@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Blog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 { text-align: center; }
+        #posts { margin-top: 20px; }
+        .post {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+        input, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simple Blog</h1>
+
+    <h3>Create a Post</h3>
+    <input type="text" id="title" placeholder="Title">
+    <textarea id="content" placeholder="Write something..."></textarea>
+    <input type="text" id="author" placeholder="Your name">
+    <button onclick="createPost()">Post</button>
+
+    <h3>Recent Posts</h3>
+    <div id="posts"></div>
+
+    <script>
+        const API_URL = "https://blog-backend-133007698092.us-central1.run.app/posts";
+
+        // Fetch and display posts
+        async function fetchPosts() {
+            const response = await fetch(API_URL);
+            const posts = await response.json();
+            const postsContainer = document.getElementById("posts");
+            postsContainer.innerHTML = "";
+
+            posts.forEach(post => {
+                const postElement = document.createElement("div");
+                postElement.classList.add("post");
+                postElement.innerHTML = `
+                    <h4>${post.title}</h4>
+                    <p>${post.content}</p>
+                    <small>By ${post.author || "Anonymous"} on ${new Date(post.createdAt * 1000).toLocaleString()}</small>
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        // Create a new post
+        async function createPost() {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const author = document.getElementById("author").value;
+
+            if (!title || !content) {
+                alert("Title and content are required!");
+                return;
+            }
+
+            const postData = { title, content, author, createdAt: Math.floor(Date.now() / 1000) };
+
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(postData)
+            });
+
+            document.getElementById("title").value = "";
+            document.getElementById("content").value = "";
+            document.getElementById("author").value = "";
+
+            fetchPosts(); // Refresh posts
+        }
+
+        // Load posts on page load
+        fetchPosts();
+    </script>
+
+</body>
+</html>
